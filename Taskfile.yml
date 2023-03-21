@@ -1,0 +1,51 @@
+version: '3'
+
+env:
+  ENV: dev
+
+tasks:
+  build:
+    cmds:
+      - echo "Building..."
+      - mkdir -p bin
+      - "cd ./src && go build -o ../bin/server_${ENV}"
+      - echo "Done!"
+    preconditions:
+      - command: go
+        version: ">= 1.16"
+    sources:
+      - src/main.go
+    generates:
+      - "bin/server_${ENV}"
+    method: timestamp
+
+  clean:
+    deps:
+      - stop
+    cmds:
+      - echo "Cleaning..."
+      - rm -rf bin .task
+      - echo "Done!"
+    status:
+      - test -d bin && exit 1 || exit 0
+      - test -d .task && exit 1 || exit 0
+
+  run:
+    deps:
+      - build
+    cmds:
+      - echo "Running..."
+      - ./bin/server_${ENV} &
+      - echo "Done!"
+    status:
+      - "ps aux | grep server_${ENV}"
+      - "curl -s http://localhost:8090/hello"
+
+  stop:
+    cmds:
+      - echo "Stopping..."
+      - "ps aux | grep server_${ENV}"
+      - killall server_${ENV}
+      - echo "Done!"
+    status:
+      - "ps aux | grep server_${ENV} | grep -v grep && exit 1 || exit 0"
