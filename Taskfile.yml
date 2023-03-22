@@ -19,6 +19,18 @@ tasks:
       - "bin/server_${ENV}"
     method: timestamp
 
+  test:
+    cmds:
+      - echo "Testing..."
+      - "cd ./src && go test"
+      - echo "Done!"
+    preconditions:
+      - command: go
+        version: ">= 1.16"
+    sources:
+      - src/main.go
+      - src/main_test.go
+
   clean:
     deps:
       - stop
